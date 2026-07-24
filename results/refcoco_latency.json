@@ -1,0 +1,13 @@
+{
+  "cpu": {
+    "backbone_s": 0.10612152499961666,
+    "readout_s": 0.00834323544986546,
+    "total_s": 0.11446476044948212
+  },
+  "mps": {
+    "backbone_s": 0.0698351103987079,
+    "readout_s": 0.004949445847887546,
+    "total_s": 0.07478455624659545
+  },
+  "search_cost_note": "ART planning cost excluded from its total, which favours ART; ours includes full planning"
+}

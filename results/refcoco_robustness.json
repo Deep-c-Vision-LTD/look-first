@@ -1,0 +1,15 @@
+{
+  "grid_robustness": {
+    "base_8x8": 8.467391304347826,
+    "jittered_origin_mean": 8.411684782608695,
+    "jittered_origin_std": 0.27879097243109174,
+    "overlap_1.5x": 9.41304347826087,
+    "n": 92
+  },
+  "paraphrase_robustness": {
+    "original_mean": 8.467391304347826,
+    "paraphrase_mean": 8.521739130434783,
+    "n": 92,
+    "per_stimulus_abs_delta_mean": 0.8695652173913043
+  }
+}
