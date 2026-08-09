@@ -15,11 +15,13 @@ FiLM-modulated ASPP head), trained on human gaze, orders glimpses so the referre
 is reached in a mean of **8.5 crops on an 8x8 grid, against 33.1 for raster scanning and
 17.9 for the 751 MB scanpath model ART** ("Look Hear", ECCV 2024), while inspecting more
 than half the frame on only **2% of searches against 24% for ART**. The correct referring
-expression is what drives this: holding the model fixed, a mismatched expression raises
-the mean from 6.2 to 8.2 crops at 6x6, a gap the standard correlation metric barely
-registers (0.759 vs 0.720). Because each avoided crop removes one call to an expensive
-grounding model, the saving over ART grows with grounding cost, reaching ~50% at 100 ms
-per crop.
+expression is what drives this: holding the model fixed, a mismatched expression costs
+1.8 crops at 6x6 (p = 1.9e-23 over 391 image and expression pairs), a gap the standard
+correlation metric barely registers (0.759 vs 0.720). The advantage over ART is
+significant at the fine 8x8 grid (p = 0.003) but not at coarser ones, where ART's bimodal
+profile still wins about 39% of individual stimuli; the tail gap above holds at every
+grid. Because each avoided crop removes one call to an expensive grounding model, the
+saving over ART grows with grounding cost, reaching ~50% at 100 ms per crop.
 
 ![regimes](figures/fig_glimpse.png)
 
@@ -40,6 +42,8 @@ python scripts/compare_glimpse_baselines.py  # main table (all orderings, both g
 python scripts/analyze_glimpse_distributions.py  # grid sweep + tail (Table II)
 python scripts/robustness_checks.py          # grid-jitter + paraphrase robustness
 python scripts/bench_latency.py              # planning latency + total search cost
+python scripts/significance_tests.py         # paired Wilcoxon + Holm + bootstrap CIs
+python scripts/eval_extended_split.py        # 391-pair evaluation (adds the held-out 299)
 python scripts/make_fig_glimpse.py           # Fig. 1
 ```
 
@@ -62,9 +66,12 @@ the score:
   used for the human oracle. ART is pinned to torch 1.12 / py3.8 / cu11.3 to match its
   authors' environment.
 
-**Protocol note.** Evaluation is on the 92-pair validation split (the largest with usable
+**Protocol note.** The ART comparison is on the 92-pair validation split (the largest with usable
 target boxes; the test split was withdrawn by its authors pending an online benchmark). ART
-used these stimuli for model selection, which favours it; we report it anyway.
+used these stimuli for model selection, which favours it; we report it anyway. Every
+other comparison additionally uses a 299-pair split held out from our training, for a
+combined 391 pairs; ART is excluded there because it trained on the split those pairs
+come from.
 
 ## Repository layout
 
@@ -75,6 +82,8 @@ scripts/eval_refcoco_grounding.py     matched/mismatched/neutral controls
 scripts/compare_glimpse_baselines.py  main comparison table
 scripts/analyze_glimpse_distributions.py  grid sweep + tail statistics
 scripts/robustness_checks.py          grid-jitter + paraphrase robustness
+scripts/significance_tests.py         paired Wilcoxon, Holm correction, bootstrap CIs
+scripts/eval_extended_split.py        evaluation on 391 pairs (92 official + 299 held out)
 scripts/bench_latency.py              latency and total-search-cost model
 scripts/eval_sum_refcoco.py           SUM + DeepGaze IIE tile scores (GPU)
 scripts/eval_art_refcoco.py           ART scanpaths (GPU, pinned env)
