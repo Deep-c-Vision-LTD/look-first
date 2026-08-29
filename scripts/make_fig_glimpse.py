@@ -15,7 +15,7 @@ from PIL import Image
 from collections import defaultdict
 from scipy.ndimage import gaussian_filter
 
-from src.model import IntentASPP
+from src.model_v3 import IntentASPP
 from train_refcoco_gaze import (ROOT, PROC_VAL, PROC_TRAIN, RAW_VAL, OUT_CKPT,
                                 SIZE, EVAL, IM_M, IM_S, tile_of, order_from_map,
                                 glimpses)
@@ -64,16 +64,20 @@ def main():
 
     fig, axes = plt.subplots(len(EXAMPLES), 3, figsize=(9.2, 8.0))
 
-    def draw_grid_order(ax, order, target_tile, top=6):
+    def draw_grid_order(ax, order, target_tile, W, H, top=6):
+        # draw in DATA (pixel) coordinates so tiles align with imshow(origin='upper'):
+        # image row r=0 is the TOP. (transAxes was y-flipped, putting top-row tiles at
+        # the bottom of the panel.)
+        tw, th = W / G, H / G
         for rank, k in enumerate(order[:top]):
             r, c = divmod(k, G)
-            ax.add_patch(Rectangle((c/G, r/G), 1/G, 1/G, transform=ax.transAxes,
-                                   fill=False, edgecolor="white", lw=0.6, alpha=0.5))
-            ax.text((c+0.5)/G, (r+0.5)/G, str(rank+1), transform=ax.transAxes,
+            ax.add_patch(Rectangle((c*tw, r*th), tw, th, fill=False,
+                                   edgecolor="white", lw=0.6, alpha=0.5))
+            ax.text((c+0.5)*tw, (r+0.5)*th, str(rank+1),
                     color="white", fontsize=7, ha="center", va="center", weight="bold")
         r, c = divmod(target_tile, G)
-        ax.add_patch(Rectangle((c/G, r/G), 1/G, 1/G, transform=ax.transAxes,
-                               fill=False, edgecolor="#00e5ff", lw=2.2))
+        ax.add_patch(Rectangle((c*tw, r*th), tw, th, fill=False,
+                               edgecolor="#00e5ff", lw=2.2))
 
     for row, (stem, regime) in enumerate(EXAMPLES):
         e = ent[stem]
@@ -102,7 +106,7 @@ def main():
         ax = axes[row, 1]; ax.imshow(img); ax.imshow(np.asarray(Image.fromarray(
             (p/p.max()*255).astype(np.uint8)).resize(img.size)), cmap="jet", alpha=0.45)
         ax.set_xticks([]); ax.set_yticks([])
-        draw_grid_order(ax, order_from_map(p, G), tt)
+        draw_grid_order(ax, order_from_map(p, G), tt, img.size[0], img.size[1])
         if row == 0:
             ax.set_title("ours (conditioned density)", fontsize=10)
         ax.set_xlabel(f"target found in {og} glimpses", fontsize=9)
@@ -118,7 +122,7 @@ def main():
         ax.imshow(np.asarray(Image.fromarray((heat/max(heat.max(), 1)*255).astype(np.uint8)
                   ).resize(img.size, Image.NEAREST)), cmap="jet", alpha=0.45)
         ax.set_xticks([]); ax.set_yticks([])
-        draw_grid_order(ax, list(np.argsort(-w)), tt)
+        draw_grid_order(ax, list(np.argsort(-w)), tt, img.size[0], img.size[1])
         if row == 0:
             ax.set_title("ART (Look Hear) fixations", fontsize=10)
         ax.set_xlabel(f"target found in {ag} glimpses", fontsize=9)
