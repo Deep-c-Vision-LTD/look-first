@@ -2,26 +2,24 @@
 
 Code and results for:
 
-> Hamit Soyel. **Where to Look First: Language-Conditioned Attention Cuts the Expected and
-> Worst-Case Cost of Visual Search.** IEEE Robotics and Automation Letters (submitted).
+> Hamit Soyel. **Correlation Hides Grounding: Search Cost as the Right Metric for
+> Language-Conditioned Visual Attention.** Pattern Recognition (submitted).
 
 ## The result in one paragraph
 
-A robot told to fetch "the cup of tea on the right" must find that object in a
-high-resolution frame before it can act. Inspecting the scene as a sequence of cropped
-glimpses is cheap only if you know which crops to inspect first. **A 4.1M-parameter
-text-conditioned readout on frozen features** (frozen DINOv2 + frozen CLIP text + a
-FiLM-modulated ASPP head), trained on human gaze, orders glimpses so the referred object
-is reached in a mean of **8.5 crops on an 8x8 grid, against 33.1 for raster scanning and
-17.9 for the 751 MB scanpath model ART** ("Look Hear", ECCV 2024), while inspecting more
-than half the frame on only **2% of searches against 24% for ART**. The correct referring
-expression is what drives this: holding the model fixed, a mismatched expression costs
-1.8 crops at 6x6 (p = 1.9e-23 over 391 image and expression pairs), a gap the standard
-correlation metric barely registers (0.759 vs 0.720). The advantage over ART is
-significant at the fine 8x8 grid (p = 0.003) but not at coarser ones, where ART's bimodal
-profile still wins about 39% of individual stimuli; the tail gap above holds at every
-grid. Because each avoided crop removes one call to an expensive grounding model, the
-saving over ART grows with grounding cost, reaching ~50% at 100 ms per crop.
+Language-conditioned attention models are usually scored by how well their predicted fixation
+density correlates with human density. This repository measures instead what a visual search
+actually pays: the number of image crops (glimpses) inspected before the referred object is
+reached. Holding a **4.1M-parameter text-conditioned readout on frozen features** fixed (frozen
+DINOv2 + frozen CLIP text + a FiLM-modulated ASPP head), swapping the correct referring
+expression for a mismatched one costs **1.8 crops at 6x6 (p = 1.9e-23 over 391 image and
+expression pairs)**, while correlation moves by only **0.04 (0.767 vs 0.724)**: correlation hides
+grounding. The readout reaches the target in **8.5 crops on an 8x8 grid against 33.1 for raster
+scanning, matching the 751 MB scanpath model ART** ("Look Hear", ECCV 2024) at **8.7 crops
+(p = 0.99)**. That comparison depends on how ART's fixations are turned into a ranking of crops:
+scored by raw fixation counts, most crops tie at zero and ART's mean doubles to 17.9 crops with
+24% of searches inspecting more than half the frame; smoothed into a density (as human fixation
+maps are built), the tail disappears (3%). `scripts/art_steelman.py` reproduces every variant.
 
 ![regimes](figures/fig_glimpse.png)
 
@@ -39,12 +37,13 @@ saving over ART grows with grounding cost, reaching ~50% at 100 ms per crop.
 python scripts/train_refcoco_gaze.py         # ~30 min on one GPU; conditioned readout
 python scripts/eval_refcoco_grounding.py     # matched / mismatched / neutral controls
 python scripts/compare_glimpse_baselines.py  # main table (all orderings, both grids)
-python scripts/analyze_glimpse_distributions.py  # grid sweep + tail (Table II)
+python scripts/analyze_glimpse_distributions.py  # grid sweep, ART scored by raw counts
 python scripts/robustness_checks.py          # grid-jitter + paraphrase robustness
 python scripts/bench_latency.py              # planning latency + total search cost
 python scripts/significance_tests.py         # paired Wilcoxon + Holm + bootstrap CIs
 python scripts/eval_extended_split.py        # 391-pair evaluation (adds the held-out 299)
-python scripts/make_fig_glimpse.py           # Fig. 1
+python scripts/art_steelman.py               # ART under raw-count vs smoothed-density conversions (Table 3)
+python scripts/make_fig_glimpse_conversion.py # Fig. 2 (ours, ART raw counts, ART smoothed density)
 ```
 
 Pre-computed result JSONs for every number in the paper are in `results/`.
@@ -80,7 +79,8 @@ src/model.py                          self-contained conditioned readout (Intent
 scripts/train_refcoco_gaze.py         train + evaluate
 scripts/eval_refcoco_grounding.py     matched/mismatched/neutral controls
 scripts/compare_glimpse_baselines.py  main comparison table
-scripts/analyze_glimpse_distributions.py  grid sweep + tail statistics
+scripts/analyze_glimpse_distributions.py  grid sweep (ART by raw counts)
+scripts/art_steelman.py               ART raw-count vs smoothed-density conversions
 scripts/robustness_checks.py          grid-jitter + paraphrase robustness
 scripts/significance_tests.py         paired Wilcoxon, Holm correction, bootstrap CIs
 scripts/eval_extended_split.py        evaluation on 391 pairs (92 official + 299 held out)
