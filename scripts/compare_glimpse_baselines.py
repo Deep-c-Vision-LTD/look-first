@@ -4,7 +4,7 @@ strategy on the same stimuli, same grid, same success criterion.
 
 Consumes:
   checkpoints/refcoco_gaze_v1.pt              our trained conditioned readout
-  checkpoints/refcoco_baseline_tiles.json     SageMaker output (SUM, DeepGaze IIE)
+  checkpoints/refcoco_baseline_tiles.json     scripts/eval_sum_refcoco.py output (SUM, DeepGaze IIE)
 
 Every model is reduced to the SAME interface -- a score per glimpse tile -- so the
 ordering rule (argsort descending) is identical across models and no baseline is
@@ -86,7 +86,7 @@ def main():
     base = json.load(open(BASE_TILES)) if os.path.exists(BASE_TILES) else {}
     if not base:
         print(f"NOTE: {BASE_TILES} not found -- reporting our model + geometric "
-              f"baselines only (run the SageMaker job for SUM/DeepGaze).")
+              f"baselines only (run scripts/eval_sum_refcoco.py for SUM/DeepGaze).")
     base_models = sorted({m for v in base.values() for m in v})
     art, art_last = art_tile_scores()
     if art:

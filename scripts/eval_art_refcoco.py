@@ -1,5 +1,5 @@
 """
-SageMaker entry point: run ART ("Look Hear", ECCV 2024, the RefCOCO-Gaze authors'
+GPU entry point: run ART ("Look Hear", ECCV 2024, the RefCOCO-Gaze authors'
 own model) on our 92 official-val referring expressions and dump its predicted
 scanpaths, so they can be converted offline into glimpse orderings and compared
 with our conditioned readout under an identical protocol.
@@ -16,14 +16,16 @@ Notes grounded in ART's actual source (not guessed):
     which we neither have nor need (we score glimpse orderings ourselves).
   * env is python3.8 / torch 1.12 / cu113 to match art_env_export.yml.
 
-Channels: 'imgs' = 512x320 stimuli, 'refs' = art_val_refs.json
+Inputs (environment variables): ART_IMGS = folder of 512x320 stimuli,
+ART_REFS = folder holding art_val_refs.json, ART_OUT = output folder,
+ART_REPO = where the ART repo is cloned.
 """
 import os, sys, json, subprocess, traceback, shutil
 
-REFS = os.environ.get("SM_CHANNEL_REFS", "./refs")
-IMGS = os.environ.get("SM_CHANNEL_IMGS", "./images")
-OUT = os.environ.get("SM_MODEL_DIR", "./model")
-REPO = "/opt/ml/ART"
+REFS = os.path.abspath(os.environ.get("ART_REFS", "./refs"))
+IMGS = os.path.abspath(os.environ.get("ART_IMGS", "./images"))
+OUT = os.path.abspath(os.environ.get("ART_OUT", "./model"))
+REPO = os.path.abspath(os.environ.get("ART_REPO", "./ART"))
 
 DRIVE = {  # file ids resolved from the authors' public Drive folder
     "checkpoints/art_checkpoint.pkg": "1ZIhNOoa3Jn0XjXkNAzvNOQJ25MhAqJOS",

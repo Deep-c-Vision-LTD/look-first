@@ -6,7 +6,7 @@ our conditioned readout, ART, the human oracle and raster scan. ART's raw
 fixations and our predicted maps are both re-binned at each grid, so nothing is
 locked to the grid used in the main table.
 
-(SUM / DeepGaze are absent here: the SageMaker job emitted tile scores only for
+(SUM / DeepGaze are absent here: scripts/eval_sum_refcoco.py emitted tile scores only for
 the 4x4 and 6x6 grids, and re-running them for 8x8 would not change what this
 analysis is asking.)
 

@@ -1,5 +1,5 @@
 """
-SageMaker entry point: run the language-blind saliency baselines on RefCOCO-Gaze
+GPU entry point: run the language-blind saliency baselines on RefCOCO-Gaze
 stimuli and dump the per-image glimpse-tile scores the RA-L letter needs.
 
 Why this job exists: our claim is that the REFERRING EXPRESSION is what makes the
@@ -7,19 +7,19 @@ crop ordering good. The control is a strong saliency model that cannot read the
 expression at all. If SUM/DeepGaze order crops as well as we do, the letter has
 no contribution.
 
-Outputs (to SM_MODEL_DIR):
+Outputs (to $BASELINE_OUT, default ./model):
   refcoco_baseline_tiles.json   {image: {model: {"4": [16 scores], "6": [36 scores]}}}
 Tile scores are summed predicted density per tile, so the glimpse ordering is
 argsort(-scores) computed offline -- identical to the ordering rule used for our
 own model, keeping the comparison apples to apples.
 
-Data channel 'imgs' = the 1,891 RefCOCO-Gaze stimuli (1680x1050 jpgs).
+Input: $BASELINE_IMGS = folder of the 1,891 RefCOCO-Gaze stimuli (1680x1050 jpgs).
 """
 import os, glob, json, subprocess, sys, traceback
 import numpy as np
 
-IMGS = os.environ.get("SM_CHANNEL_IMGS", "./images")
-OUT = os.environ.get("SM_MODEL_DIR", "./model")
+IMGS = os.environ.get("BASELINE_IMGS", "./images")
+OUT = os.environ.get("BASELINE_OUT", "./model")
 GRIDS = (4, 6)
 S = 384
 

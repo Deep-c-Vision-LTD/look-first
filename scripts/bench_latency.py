@@ -9,7 +9,7 @@ the local accelerator, then reports total cost against ART for a range of
 per-crop costs.
 
 ART's planning cost is not measurable locally (CUDA + their env), so it is taken
-from its own SageMaker inference run and stated as measured there.
+from its own GPU inference run (scripts/eval_art_refcoco.py) and stated as measured there.
 
   cd saliency_research && PYTHONPATH=. .venv/bin/python bench_latency.py
 """
@@ -23,8 +23,7 @@ from train_refcoco_gaze import (ROOT, PROC_VAL, PROC_TRAIN, OUT_CKPT, SIZE, EVAL
 
 N_WARM, N_RUN = 3, 20
 OUT_JSON = f"{ROOT}/checkpoints/refcoco_latency.json"
-# from the ART SageMaker run: 92 refs x 10 samples, autoregressive over words
-ART_JOB = "refcoco-art-2026-07-24-18-53-24-922"
+# from the ART GPU run of 24 Jul 2026: 92 refs x 10 samples, autoregressive over words
 
 
 def bench(dev_name):

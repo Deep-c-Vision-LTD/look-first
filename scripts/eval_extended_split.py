@@ -7,7 +7,7 @@ Which comparisons can legitimately be extended, and which cannot:
   * ours          -- the internal-299 split is held out from OUR training
                      (1500 train / 299 internal-val, seed 0), so it is fair.
   * SUM, DeepGaze -- zero-shot, never trained on RefCOCO-Gaze, so fair anywhere.
-                     The SageMaker job scored all 1,891 stimuli, so the tiles exist.
+                     The GPU baseline job scored all 1,891 stimuli, so the tiles exist.
   * human oracle  -- leave-one-observer-out, fair anywhere.
   * ART           -- CANNOT be extended. ART was trained on the RefCOCO-Gaze train
                      split, from which internal-299 is carved. The ART comparison
